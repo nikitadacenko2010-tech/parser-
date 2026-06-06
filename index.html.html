@@ -115,19 +115,13 @@
             margin: 0 auto;
         }
 
-        /* Карточка поста, залетающая сверху */
+        /* Карточка поста */
         .post-card {
             background: #13131a;
             border: 1px solid #222230;
             border-radius: 18px;
             padding: 18px;
             box-shadow: 0 8px 16px rgba(0,0,0,0.4);
-            animation: appendTop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); /* Эффектный отскок при появлении */
-        }
-
-        @keyframes appendTop {
-            from { opacity: 0; transform: translateY(-30px); filter: brightness(2); }
-            to { opacity: 1; transform: translateY(0); filter: brightness(1); }
         }
 
         .post-header {
@@ -282,80 +276,78 @@
     </div>
 
     <script>
-        // Твой актуальный IP-адрес из вывода команды ipconfig
         const SERVER_IP = "192.168.1.101"; 
-        
         const SERVER_URL = `http://${SERVER_IP}:8000/api/gifts/all`;
 
-        // Переход с заставки в приложение
         function enterApp() {
             const welcome = document.getElementById('welcomeScreen');
             const app = document.getElementById('appScreen');
             
-            welcome.style.transform = 'translateY(-100vh)'; // Эффект скольжения экрана вверх
+            welcome.style.transform = 'translateY(-100vh)'; 
             setTimeout(() => {
                 welcome.style.display = 'none';
                 app.style.display = 'flex';
-                startLiveFeed(); // Включаем бесконечный прием постов
+                startLiveFeed(); 
             }, 600);
         }
 
-        // Логика бесконечной живой ленты с защитой от дублирования лотов
         function startLiveFeed() {
             const feed = document.getElementById('feedContainer');
-            // Используем Set для хранения железно уникальных ключей лотов
-            let displayedGifts = new Set();
 
             function fetchLiveUpdates() {
                 fetch(SERVER_URL)
                     .then(res => res.json())
                     .then(allGifts => {
-                        // Разворачиваем копию массива, чтобы новые лоты обрабатывались и вставлялись первыми
-                        const orderedGifts = [...allGifts].reverse();
-                        
-                        orderedGifts.forEach(gift => {
-                            // Формируем уникальный идентификатор для лота
+                        // Очищаем экран перед рендером, чтобы избежать бесконечного накопления дублей
+                        feed.innerHTML = '';
+
+                        // Фильтруем массив от дубликатов на лету внутри этого запроса
+                        const uniqueGifts = [];
+                        const seenKeys = new Set();
+
+                        // Идем с конца массива к началу (новые лоты обычно в конце логов бэкенда)
+                        for (let i = allGifts.length - 1; i >= 0; i--) {
+                            const gift = allGifts[i];
                             const giftKey = `${gift.seller_username}_${gift.gift_name}_${gift.number || gift.timestamp}`;
-
-                            // Если этот лот еще не отрисован на экране, добавляем его
-                            if (!displayedGifts.has(giftKey)) {
-                                displayedGifts.add(giftKey);
-
-                                const post = document.createElement('div');
-                                post.className = 'post-card';
-
-                                // Используем время парсинга с сервера, либо текущее клиентское время
-                                const postDate = gift.timestamp ? new Date(gift.timestamp) : new Date();
-                                const timeStr = postDate.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', second:'2-digit'});
-                                const link = `https://t.me/${gift.seller_username}`;
-
-                                post.innerHTML = `
-                                    <div class="post-header">
-                                        <div class="channel-info">
-                                            <div class="channel-avatar">💎</div>
-                                            <div class="channel-name">@${gift.seller_username} выставил лот</div>
-                                        </div>
-                                        <div class="post-time">${timeStr}</div>
-                                    </div>
-                                    <div class="post-content">
-                                        <div class="gift-title">🎁 Предмет: ${gift.gift_name}</div>
-                                        <div class="gift-meta">Серийный номер: ${gift.number}</div>
-                                        <div class="gift-price">⭐ Стоимость: ${gift.price} Stars</div>
-                                    </div>
-                                    <a href="${link}" target="_blank" class="seller-btn">👤 Продавец</a>
-                                `;
-
-                                // Добавляем свежий пост в самое начало ленты
-                                feed.insertBefore(post, feed.firstChild);
+                            
+                            if (!seenKeys.has(giftKey)) {
+                                seenKeys.add(giftKey);
+                                uniqueGifts.push(gift);
                             }
+                        }
+
+                        // Рендерим только уникальные элементы
+                        uniqueGifts.forEach(gift => {
+                            const post = document.createElement('div');
+                            post.className = 'post-card';
+
+                            const postDate = gift.timestamp ? new Date(gift.timestamp) : new Date();
+                            const timeStr = postDate.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', second:'2-digit'});
+                            const link = `https://t.me/${gift.seller_username}`;
+
+                            post.innerHTML = `
+                                <div class="post-header">
+                                    <div class="channel-info">
+                                        <div class="channel-avatar">💎</div>
+                                        <div class="channel-name">@${gift.seller_username} выставил лот</div>
+                                    </div>
+                                    <div class="post-time">${timeStr}</div>
+                                </div>
+                                <div class="post-content">
+                                    <div class="gift-title">🎁 Предмет: ${gift.gift_name}</div>
+                                    <div class="gift-meta">Серийный номер: ${gift.number}</div>
+                                    <div class="gift-price">⭐ Стоимость: ${gift.price} Stars</div>
+                                </div>
+                                <a href="${link}" target="_blank" class="seller-btn">👤 Продавец</a>
+                            `;
+                            feed.appendChild(post);
                         });
                     })
                     .catch(err => {
-                        console.log("Ожидание новых лотов от бэкенда...", err);
+                        console.log("Ожидание новых лотов...", err);
                     });
             }
 
-            // Запускаем опрос сервера каждые 2 секунды
             fetchLiveUpdates();
             setInterval(fetchLiveUpdates, 2000);
         }
