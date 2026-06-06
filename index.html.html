@@ -282,6 +282,12 @@
     </div>
 
     <script>
+        // Скрипт автоматически определяет адрес запущенного сервера бэкенда.
+        // Если ты открыл файл на ПК, он будет слать запросы к 127.0.0.1.
+        // Если открыл на телефоне, замени слово "window.location.hostname" внутри кавычек на IP своего компьютера (например "192.168.1.45")
+        const SERVER_IP = window.location.hostname || "127.0.0.1";
+        const SERVER_URL = `http://${SERVER_IP}:8000/api/gifts/all`;
+
         // Переход с заставки в приложение
         function enterApp() {
             const welcome = document.getElementById('welcomeScreen');
@@ -298,49 +304,53 @@
         // Логика бесконечной живой ленты
         function startLiveFeed() {
             const feed = document.getElementById('feedContainer');
+            // Будем запоминать ID отрисованных постов, чтобы избежать дублирования карточек на экране
+            let displayedTimestamps = new Set();
 
             function fetchLiveUpdates() {
-                // Запрашиваем новые сгенерированные лоты у FastAPI сервера
-                fetch('http://127.0.0.1:8000/api/gifts/new')
+                fetch(SERVER_URL)
                     .then(res => res.json())
-                    .then(newGifts => {
-                        newGifts.forEach(gift => {
-                            const post = document.createElement('div');
-                            post.className = 'post-card';
+                    .then(allGifts => {
+                        // Разворачиваем массив, чтобы добавлять новые элементы в правильном хронологическом порядке
+                        allGifts.reverse().forEach(gift => {
+                            // Проверяем, отрисовывали ли мы этот пост ранее
+                            if (!displayedTimestamps.has(gift.timestamp)) {
+                                displayedTimestamps.add(gift.timestamp);
 
-                            // Генерируем реальное время прилета поста
-                            const now = new Date();
-                            const timeStr = now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', second:'2-digit'});
-                            
-                            // Формируем прямую ссылку на продавца лота
-                            const link = `https://t.me/${gift.seller_username}`;
+                                const post = document.createElement('div');
+                                post.className = 'post-card';
 
-                            post.innerHTML = `
-                                <div class="post-header">
-                                    <div class="channel-info">
-                                        <div class="channel-avatar">💎</div>
-                                        <div class="channel-name">@${gift.seller_username} выставил лот</div>
+                                const now = new Date();
+                                const timeStr = now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', second:'2-digit'});
+                                const link = `https://t.me/${gift.seller_username}`;
+
+                                post.innerHTML = `
+                                    <div class="post-header">
+                                        <div class="channel-info">
+                                            <div class="channel-avatar">💎</div>
+                                            <div class="channel-name">@${gift.seller_username} выставил лот</div>
+                                        </div>
+                                        <div class="post-time">${timeStr}</div>
                                     </div>
-                                    <div class="post-time">${timeStr}</div>
-                                </div>
-                                <div class="post-content">
-                                    <div class="gift-title">🎁 Предмет: ${gift.gift_name}</div>
-                                    <div class="gift-meta">Серийный номер: ${gift.number}</div>
-                                    <div class="gift-price">⭐ Стоимость: ${gift.price} Stars</div>
-                                </div>
-                                <a href="${link}" target="_blank" class="seller-btn">👤 Продавец</a>
-                            `;
+                                    <div class="post-content">
+                                        <div class="gift-title">🎁 Предмет: ${gift.gift_name}</div>
+                                        <div class="gift-meta">Серийный номер: ${gift.number}</div>
+                                        <div class="gift-price">⭐ Стоимость: ${gift.price} Stars</div>
+                                    </div>
+                                    <a href="${link}" target="_blank" class="seller-btn">👤 Продавец</a>
+                                `;
 
-                            // ВАЖНО: Вставляем новый элемент в самый верх (перед первым ребенком)
-                            feed.insertBefore(post, feed.firstChild);
+                                // Вставляем новый пост на самый верх ленты
+                                feed.insertBefore(post, feed.firstChild);
+                            }
                         });
                     })
                     .catch(err => {
-                        console.log("Поиск новых обновлений на сервере...");
+                        console.log("Ожидание новых лотов от бэкенда...", err);
                     });
             }
 
-            // Опрашиваем бэкенд каждые 2 секунды, чтобы моментально забирать свежие посты
+            // Опрашиваем бэкенд каждые 2 секунды
             fetchLiveUpdates();
             setInterval(fetchLiveUpdates, 2000);
         }
