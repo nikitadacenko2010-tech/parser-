@@ -282,8 +282,13 @@
     </div>
 
     <script>
-        // Четко зашиваем адрес бэкенда, который у тебя успешно работает
-        const SERVER_URL = "http://127.0.0.1:8000/api/gifts/all";
+        // Умное определение IP: если файл открыт локально без веб-сервера, 
+        // подставится "127.0.0.1". Если запущен в сети — подставится рабочий IP хоста.
+        const SERVER_IP = window.location.hostname && window.location.hostname !== "localhost" && window.location.hostname !== "127.0.0.1"
+            ? window.location.hostname 
+            : "127.0.0.1";
+            
+        const SERVER_URL = `http://${SERVER_IP}:8000/api/gifts/all`;
 
         // Переход с заставки в приложение
         function enterApp() {
@@ -308,11 +313,11 @@
                 fetch(SERVER_URL)
                     .then(res => res.json())
                     .then(allGifts => {
-                        // Создаем копию массива [...allGifts] и разворачиваем ЕЁ, чтобы не ломать оригинал при каждом тике таймера
+                        // Создаем изолированную копию массива и разворачиваем её для соблюдения хронологии
                         const orderedGifts = [...allGifts].reverse();
                         
                         orderedGifts.forEach(gift => {
-                            // Проверяем, отрисовывали ли мы этот пост ранее
+                            // Проверяем, отрисовывали ли мы этот лот ранее
                             if (!displayedTimestamps.has(gift.timestamp)) {
                                 displayedTimestamps.add(gift.timestamp);
 
