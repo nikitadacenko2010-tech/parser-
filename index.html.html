@@ -282,12 +282,10 @@
     </div>
 
     <script>
-        // Умное определение IP: если файл открыт локально без веб-сервера, 
-        // подставится "127.0.0.1". Если запущен в сети — подставится рабочий IP хоста.
-        const SERVER_IP = window.location.hostname && window.location.hostname !== "localhost" && window.location.hostname !== "127.0.0.1"
-            ? window.location.hostname 
-            : "127.0.0.1";
-            
+        // ВНИМАНИЕ: Замени "192.168.1.5" ниже на свой IP из команды ipconfig!
+        // Если ты просто сидишь с ПК, можешь временно вернуть тут "127.0.0.1"
+        const SERVER_IP = "127.0.0.1"; 
+        
         const SERVER_URL = `http://${SERVER_IP}:8000/api/gifts/all`;
 
         // Переход с заставки в приложение
