@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ТРАХ ПАРСЕР</title>
     <style>
-        /* Общие настройки стиля под Telegram Mini App */
+        /* Общие стили под темную тему Telegram Mini App */
         body {
             background-color: #0b0b0f;
             color: #ffffff;
@@ -23,8 +23,8 @@
             left: 0;
             width: 100%;
             height: 100vh;
-            /* Качественный аниме-фон (киберпанк/дарк тематика) */
-            background: linear-gradient(to bottom, rgba(11, 11, 15, 0.3), #0b0b0f), 
+            /* Стильный аниме-фон из Unsplash */
+            background: linear-gradient(to bottom, rgba(11, 11, 15, 0.4), #0b0b0f), 
                         url('https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?q=80&w=1000&auto=format&fit=crop') no-repeat center center;
             background-size: cover;
             display: flex;
@@ -32,25 +32,25 @@
             justify-content: center;
             align-items: center;
             z-index: 10;
-            transition: transform 0.5s ease-in-out;
+            transition: transform 0.6s cubic-bezier(0.77, 0, 0.175, 1);
         }
 
-        /* Огромный агрессивный заголовок */
+        /* Агрессивный неоновый заголовок по центру */
         .main-title {
-            font-size: 42px;
+            font-size: 46px;
             font-weight: 900;
             text-transform: uppercase;
             color: #ff0055;
             text-shadow: 0 0 20px #ff0055, 0 0 40px #ff0055;
-            letter-spacing: 2px;
-            margin-bottom: 30px;
+            letter-spacing: 3px;
+            margin-bottom: 35px;
             text-align: center;
-            animation: pulse 1.5s infinite alternate;
+            animation: pulse 1.2s infinite alternate;
         }
 
         @keyframes pulse {
             from { transform: scale(1); text-shadow: 0 0 20px #ff0055; }
-            to { transform: scale(1.05); text-shadow: 0 0 35px #ff0055, 0 0 10px #fff; }
+            to { transform: scale(1.06); text-shadow: 0 0 35px #ff0055, 0 0 10px #fff; }
         }
 
         /* Кнопка ТРАХ ПАРСЕР */
@@ -58,167 +58,181 @@
             background: linear-gradient(45deg, #ff0055, #7000ff);
             color: white;
             border: none;
-            padding: 18px 45px;
-            font-size: 20px;
+            padding: 20px 50px;
+            font-size: 22px;
             font-weight: bold;
             text-transform: uppercase;
             border-radius: 50px;
             cursor: pointer;
-            box-shadow: 0 5px 25px rgba(255, 0, 85, 0.6);
-            transition: 0.3s;
+            box-shadow: 0 5px 30px rgba(255, 0, 85, 0.6);
+            transition: 0.3s ease;
         }
 
         .start-btn:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 35px rgba(112, 0, 255, 0.8);
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 8px 40px rgba(112, 0, 255, 0.8);
         }
 
-        /* ЭКРАН 2: Внутренний интерфейс Mini App */
+        /* ЭКРАН 2: Внутренний интерфейс Ленты */
         .app-screen {
             padding: 15px;
-            padding-bottom: 90px; /* Место для нижней панели */
+            padding-bottom: 95px; /* Зазор под нижнюю панель навигации */
             display: none;
             flex-direction: column;
             min-height: 100vh;
             box-sizing: border-box;
         }
 
+        /* Закрепленный липкий заголовок ленты */
+        .screen-header {
+            position: sticky;
+            top: 0;
+            background: #0b0b0f;
+            padding: 15px 0;
+            z-index: 5;
+            border-bottom: 1px solid #1a1a26;
+            margin-bottom: 20px;
+        }
+
         .screen-title {
-            font-size: 20px;
-            font-weight: bold;
+            font-size: 22px;
+            font-weight: 800;
             color: #7000ff;
-            margin-bottom: 15px;
             text-transform: uppercase;
             letter-spacing: 1px;
             border-left: 4px solid #ff0055;
-            padding-left: 10px;
+            padding-left: 12px;
+            margin: 0;
         }
 
-        /* Лента постов (как в Чатах/Каналах Telegram) */
+        /* Контейнер бесконечной ленты */
         .feed-container {
             display: flex;
             flex-direction: column;
-            gap: 12px;
+            gap: 16px;
             width: 100%;
             max-width: 500px;
             margin: 0 auto;
         }
 
-        /* Карточка поста */
+        /* Карточка поста, залетающая сверху */
         .post-card {
             background: #13131a;
             border: 1px solid #222230;
-            border-radius: 16px;
-            padding: 16px;
-            position: relative;
-            animation: fadeIn 0.4s ease-out;
+            border-radius: 18px;
+            padding: 18px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.4);
+            animation: appendTop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); /* Эффектный отскок при появлении */
         }
 
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
+        @keyframes appendTop {
+            from { opacity: 0; transform: translateY(-30px); filter: brightness(2); }
+            to { opacity: 1; transform: translateY(0); filter: brightness(1); }
         }
 
         .post-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 10px;
+            margin-bottom: 12px;
         }
 
         .channel-info {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 12px;
         }
 
+        /* Аватарка автора поста */
         .channel-avatar {
-            width: 36px;
-            height: 36px;
+            width: 40px;
+            height: 40px;
             border-radius: 50%;
             background: linear-gradient(45deg, #7000ff, #ff0055);
             display: flex;
             align-items: center;
             justify-content: center;
             font-weight: bold;
-            font-size: 14px;
+            font-size: 16px;
+            box-shadow: 0 0 10px rgba(255, 0, 85, 0.4);
         }
 
         .channel-name {
-            font-weight: 600;
+            font-weight: 700;
             font-size: 15px;
             color: #ffffff;
         }
 
         .post-time {
             font-size: 12px;
-            color: #666680;
+            color: #555570;
         }
 
-        /* Текст самого лота */
+        /* Внутренний блок с описанием подарка */
         .post-content {
             background: #1c1c24;
-            border-radius: 12px;
-            padding: 12px;
-            margin-bottom: 12px;
-            border-left: 3px solid #7000ff;
+            border-radius: 14px;
+            padding: 14px;
+            margin-bottom: 14px;
+            border-left: 3px solid #ff0055;
         }
 
         .gift-title {
-            font-size: 16px;
-            font-weight: bold;
-            color: #fff;
-            margin-bottom: 5px;
+            font-size: 17px;
+            font-weight: 700;
+            color: #ffffff;
+            margin-bottom: 6px;
         }
 
         .gift-meta {
             font-size: 14px;
-            color: #aaa;
-            margin-bottom: 5px;
+            color: #a0a0b0;
+            margin-bottom: 6px;
         }
 
         .gift-price {
-            font-size: 16px;
+            font-size: 17px;
             color: #00ffcc;
-            font-weight: bold;
-            display: flex;
-            align-items: center;
-            gap: 4px;
+            font-weight: 800;
+            text-shadow: 0 0 10px rgba(0, 255, 204, 0.3);
         }
 
-        /* Кнопка Продавец */
+        /* Кнопка перехода к человеку (Продавец) */
         .seller-btn {
             display: flex;
             align-items: center;
             justify-content: center;
-            background: #7000ff;
-            color: #fff;
+            background: linear-gradient(90deg, #7000ff, #5200cc);
+            color: #ffffff;
             text-decoration: none;
-            padding: 12px;
-            border-radius: 10px;
-            font-weight: bold;
-            font-size: 14px;
+            padding: 14px;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 15px;
             text-transform: uppercase;
-            transition: background 0.2s;
+            letter-spacing: 0.5px;
+            transition: all 0.2s ease;
         }
 
         .seller-btn:hover {
-            background: #5900cc;
+            background: linear-gradient(90deg, #ff0055, #cc0044);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 0, 85, 0.4);
         }
 
-        /* НИЖНЯЯ ФИГУРА (Панель навигации "Чаты") */
+        /* Нижняя фиксированная фигура (Панель меню "Чаты") */
         .bottom-nav {
             position: fixed;
             bottom: 0;
             left: 0;
             width: 100%;
-            height: 70px;
+            height: 75px;
             background: #13131a;
             border-top: 1px solid #222230;
             display: flex;
             justify-content: center;
             align-items: center;
-            z-index: 5;
+            z-index: 10;
         }
 
         .nav-item {
@@ -226,18 +240,20 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            color: #ff0055; /* Подсвеченная кнопка */
+            color: #ff0055; /* Розовый неоновый акцент активности */
             cursor: pointer;
-            text-decoration: none;
-            font-weight: bold;
+            font-weight: 800;
             font-size: 12px;
-            gap: 4px;
+            gap: 5px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
 
         .nav-icon {
-            width: 26px;
-            height: 26px;
+            width: 28px;
+            height: 28px;
             fill: currentColor;
+            filter: drop-shadow(0 0 5px #ff0055);
         }
     </style>
 </head>
@@ -249,10 +265,11 @@
     </div>
 
     <div class="app-screen" id="appScreen">
-        <div class="screen-title">Лента маркета (Обновление LIVE)</div>
+        <div class="screen-header">
+            <h2 class="screen-title">⚡ ЛЕНТА МАРКЕТПЛЕЙСА (LIVE)</h2>
+        </div>
         
-        <div class="feed-container" id="feedContainer">
-            </div>
+        <div class="feed-container" id="feedContainer"></div>
 
         <div class="bottom-nav">
             <div class="nav-item">
@@ -265,68 +282,67 @@
     </div>
 
     <script>
-        // Функция входа по кнопке ТРАХ ПАРСЕР
+        // Переход с заставки в приложение
         function enterApp() {
             const welcome = document.getElementById('welcomeScreen');
             const app = document.getElementById('appScreen');
             
-            welcome.style.transform = 'translateY(-100vh)'; // Красиво уезжает вверх
+            welcome.style.transform = 'translateY(-100vh)'; // Эффект скольжения экрана вверх
             setTimeout(() => {
                 welcome.style.display = 'none';
                 app.style.display = 'flex';
-                startLiveUpdates(); // Запуск бесконечного обновления постов
-            }, 500);
+                startLiveFeed(); // Включаем бесконечный прием постов
+            }, 600);
         }
 
-        // Подключаемся к твоему Python серверу parser.py
-        function startLiveUpdates() {
+        // Логика бесконечной живой ленты
+        function startLiveFeed() {
             const feed = document.getElementById('feedContainer');
 
-            function loadPosts() {
-                fetch('http://127.0.0.1:8000/api/gifts')
+            function fetchLiveUpdates() {
+                // Запрашиваем новые сгенерированные лоты у FastAPI сервера
+                fetch('http://127.0.0.1:8000/api/gifts/new')
                     .then(res => res.json())
-                    .then(data => {
-                        // Очищаем ленту и выводим новые актуальные посты
-                        feed.innerHTML = '';
-                        
-                        data.forEach((gift, index) => {
+                    .then(newGifts => {
+                        newGifts.forEach(gift => {
                             const post = document.createElement('div');
                             post.className = 'post-card';
 
-                            // Генерируем красивое время лота
-                            const timeStr = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                            // Генерируем реальное время прилета поста
+                            const now = new Date();
+                            const timeStr = now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', second:'2-digit'});
                             
-                            // Ссылка на продавца
-                            const link = gift.seller_username 
-                                ? `https://t.me/${gift.seller_username}` 
-                                : `https://t.me/user?id=${gift.seller_id}`;
+                            // Формируем прямую ссылку на продавца лота
+                            const link = `https://t.me/${gift.seller_username}`;
 
                             post.innerHTML = `
                                 <div class="post-header">
                                     <div class="channel-info">
-                                        <div class="channel-avatar">TP</div>
-                                        <div class="channel-name">TRAH PARSER LITE #${index + 1}</div>
+                                        <div class="channel-avatar">💎</div>
+                                        <div class="channel-name">@${gift.seller_username} выставил лот</div>
                                     </div>
                                     <div class="post-time">${timeStr}</div>
                                 </div>
                                 <div class="post-content">
-                                    <div class="gift-title">🎁 Название: ${gift.gift_name}</div>
-                                    <div class="gift-meta">Порядковый номер: ${gift.number}</div>
-                                    <div class="gift-price">⭐ Цена: ${gift.price} Stars</div>
+                                    <div class="gift-title">🎁 Предмет: ${gift.gift_name}</div>
+                                    <div class="gift-meta">Серийный номер: ${gift.number}</div>
+                                    <div class="gift-price">⭐ Стоимость: ${gift.price} Stars</div>
                                 </div>
                                 <a href="${link}" target="_blank" class="seller-btn">👤 Продавец</a>
                             `;
-                            feed.appendChild(post);
+
+                            // ВАЖНО: Вставляем новый элемент в самый верх (перед первым ребенком)
+                            feed.insertBefore(post, feed.firstChild);
                         });
                     })
                     .catch(err => {
-                        console.log("Ожидание данных от сервера parser.py...", err);
+                        console.log("Поиск новых обновлений на сервере...");
                     });
             }
 
-            // Запускаем опрос сервера каждые 3 секунды для имитации постоянного обновления лотов
-            loadPosts();
-            setInterval(loadPosts, 3000);
+            // Опрашиваем бэкенд каждые 2 секунды, чтобы моментально забирать свежие посты
+            fetchLiveUpdates();
+            setInterval(fetchLiveUpdates, 2000);
         }
     </script>
 </body>
