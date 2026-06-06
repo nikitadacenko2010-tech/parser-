@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ТРАХ ПАРСЕР</title>
+    <style>
+        /* Общие настройки стиля под Telegram Mini App */
+        body {
+            background-color: #0b0b0f;
+            color: #ffffff;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            margin: 0;
+            padding: 0;
+            overflow-x: hidden;
+            height: 100vh;
+        }
+
+        /* ЭКРАН 1: Аниме заставка */
+        .welcome-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            /* Качественный аниме-фон (киберпанк/дарк тематика) */
+            background: linear-gradient(to bottom, rgba(11, 11, 15, 0.3), #0b0b0f), 
+                        url('https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?q=80&w=1000&auto=format&fit=crop') no-repeat center center;
+            background-size: cover;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+            transition: transform 0.5s ease-in-out;
+        }
+
+        /* Огромный агрессивный заголовок */
+        .main-title {
+            font-size: 42px;
+            font-weight: 900;
+            text-transform: uppercase;
+            color: #ff0055;
+            text-shadow: 0 0 20px #ff0055, 0 0 40px #ff0055;
+            letter-spacing: 2px;
+            margin-bottom: 30px;
+            text-align: center;
+            animation: pulse 1.5s infinite alternate;
+        }
+
+        @keyframes pulse {
+            from { transform: scale(1); text-shadow: 0 0 20px #ff0055; }
+            to { transform: scale(1.05); text-shadow: 0 0 35px #ff0055, 0 0 10px #fff; }
+        }
+
+        /* Кнопка ТРАХ ПАРСЕР */
+        .start-btn {
+            background: linear-gradient(45deg, #ff0055, #7000ff);
+            color: white;
+            border: none;
+            padding: 18px 45px;
+            font-size: 20px;
+            font-weight: bold;
+            text-transform: uppercase;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 5px 25px rgba(255, 0, 85, 0.6);
+            transition: 0.3s;
+        }
+
+        .start-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 35px rgba(112, 0, 255, 0.8);
+        }
+
+        /* ЭКРАН 2: Внутренний интерфейс Mini App */
+        .app-screen {
+            padding: 15px;
+            padding-bottom: 90px; /* Место для нижней панели */
+            display: none;
+            flex-direction: column;
+            min-height: 100vh;
+            box-sizing: border-box;
+        }
+
+        .screen-title {
+            font-size: 20px;
+            font-weight: bold;
+            color: #7000ff;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border-left: 4px solid #ff0055;
+            padding-left: 10px;
+        }
+
+        /* Лента постов (как в Чатах/Каналах Telegram) */
+        .feed-container {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            width: 100%;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        /* Карточка поста */
+        .post-card {
+            background: #13131a;
+            border: 1px solid #222230;
+            border-radius: 16px;
+            padding: 16px;
+            position: relative;
+            animation: fadeIn 0.4s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .post-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .channel-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .channel-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, #7000ff, #ff0055);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .channel-name {
+            font-weight: 600;
+            font-size: 15px;
+            color: #ffffff;
+        }
+
+        .post-time {
+            font-size: 12px;
+            color: #666680;
+        }
+
+        /* Текст самого лота */
+        .post-content {
+            background: #1c1c24;
+            border-radius: 12px;
+            padding: 12px;
+            margin-bottom: 12px;
+            border-left: 3px solid #7000ff;
+        }
+
+        .gift-title {
+            font-size: 16px;
+            font-weight: bold;
+            color: #fff;
+            margin-bottom: 5px;
+        }
+
+        .gift-meta {
+            font-size: 14px;
+            color: #aaa;
+            margin-bottom: 5px;
+        }
+
+        .gift-price {
+            font-size: 16px;
+            color: #00ffcc;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        /* Кнопка Продавец */
+        .seller-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #7000ff;
+            color: #fff;
+            text-decoration: none;
+            padding: 12px;
+            border-radius: 10px;
+            font-weight: bold;
+            font-size: 14px;
+            text-transform: uppercase;
+            transition: background 0.2s;
+        }
+
+        .seller-btn:hover {
+            background: #5900cc;
+        }
+
+        /* НИЖНЯЯ ФИГУРА (Панель навигации "Чаты") */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 70px;
+            background: #13131a;
+            border-top: 1px solid #222230;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 5;
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: #ff0055; /* Подсвеченная кнопка */
+            cursor: pointer;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 12px;
+            gap: 4px;
+        }
+
+        .nav-icon {
+            width: 26px;
+            height: 26px;
+            fill: currentColor;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="welcome-screen" id="welcomeScreen">
+        <div class="main-title">ТРАХ ПАРСЕР</div>
+        <button class="start-btn" onclick="enterApp()">ТРАХ ПАРСЕР</button>
+    </div>
+
+    <div class="app-screen" id="appScreen">
+        <div class="screen-title">Лента маркета (Обновление LIVE)</div>
+        
+        <div class="feed-container" id="feedContainer">
+            </div>
+
+        <div class="bottom-nav">
+            <div class="nav-item">
+                <svg class="nav-icon" viewBox="0 0 24 24">
+                    <path d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zM6 9h12v2H6V9zm8 5H6v-2h8v2zm4-6H6V6h12v2z"/>
+                </svg>
+                <span>ЧАТЫ</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Функция входа по кнопке ТРАХ ПАРСЕР
+        function enterApp() {
+            const welcome = document.getElementById('welcomeScreen');
+            const app = document.getElementById('appScreen');
+            
+            welcome.style.transform = 'translateY(-100vh)'; // Красиво уезжает вверх
+            setTimeout(() => {
+                welcome.style.display = 'none';
+                app.style.display = 'flex';
+                startLiveUpdates(); // Запуск бесконечного обновления постов
+            }, 500);
+        }
+
+        // Подключаемся к твоему Python серверу parser.py
+        function startLiveUpdates() {
+            const feed = document.getElementById('feedContainer');
+
+            function loadPosts() {
+                fetch('http://127.0.0.1:8000/api/gifts')
+                    .then(res => res.json())
+                    .then(data => {
+                        // Очищаем ленту и выводим новые актуальные посты
+                        feed.innerHTML = '';
+                        
+                        data.forEach((gift, index) => {
+                            const post = document.createElement('div');
+                            post.className = 'post-card';
+
+                            // Генерируем красивое время лота
+                            const timeStr = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                            
+                            // Ссылка на продавца
+                            const link = gift.seller_username 
+                                ? `https://t.me/${gift.seller_username}` 
+                                : `https://t.me/user?id=${gift.seller_id}`;
+
+                            post.innerHTML = `
+                                <div class="post-header">
+                                    <div class="channel-info">
+                                        <div class="channel-avatar">TP</div>
+                                        <div class="channel-name">TRAH PARSER LITE #${index + 1}</div>
+                                    </div>
+                                    <div class="post-time">${timeStr}</div>
+                                </div>
+                                <div class="post-content">
+                                    <div class="gift-title">🎁 Название: ${gift.gift_name}</div>
+                                    <div class="gift-meta">Порядковый номер: ${gift.number}</div>
+                                    <div class="gift-price">⭐ Цена: ${gift.price} Stars</div>
+                                </div>
+                                <a href="${link}" target="_blank" class="seller-btn">👤 Продавец</a>
+                            `;
+                            feed.appendChild(post);
+                        });
+                    })
+                    .catch(err => {
+                        console.log("Ожидание данных от сервера parser.py...", err);
+                    });
+            }
+
+            // Запускаем опрос сервера каждые 3 секунды для имитации постоянного обновления лотов
+            loadPosts();
+            setInterval(loadPosts, 3000);
+        }
+    </script>
+</body>
+</html>
