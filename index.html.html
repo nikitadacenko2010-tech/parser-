@@ -300,29 +300,33 @@
             }, 600);
         }
 
-        // Логика бесконечной живой ленты
+        // Логика бесконечной живой ленты с защитой от дублирования лотов
         function startLiveFeed() {
             const feed = document.getElementById('feedContainer');
-            // Будем запоминать ID отрисованных постов, чтобы избежать дублирования карточек на экране
-            let displayedTimestamps = new Set();
+            // Используем Set для хранения железно уникальных ключей лотов
+            let displayedGifts = new Set();
 
             function fetchLiveUpdates() {
                 fetch(SERVER_URL)
                     .then(res => res.json())
                     .then(allGifts => {
-                        // Создаем изолированную копию массива и разворачиваем её для соблюдения хронологии
+                        // Разворачиваем копию массива, чтобы новые лоты обрабатывались и вставлялись первыми
                         const orderedGifts = [...allGifts].reverse();
                         
                         orderedGifts.forEach(gift => {
-                            // Проверяем, отрисовывали ли мы этот лот ранее
-                            if (!displayedTimestamps.has(gift.timestamp)) {
-                                displayedTimestamps.add(gift.timestamp);
+                            // Формируем уникальный идентификатор для лота
+                            const giftKey = `${gift.seller_username}_${gift.gift_name}_${gift.number || gift.timestamp}`;
+
+                            // Если этот лот еще не отрисован на экране, добавляем его
+                            if (!displayedGifts.has(giftKey)) {
+                                displayedGifts.add(giftKey);
 
                                 const post = document.createElement('div');
                                 post.className = 'post-card';
 
-                                const now = new Date();
-                                const timeStr = now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', second:'2-digit'});
+                                // Используем время парсинга с сервера, либо текущее клиентское время
+                                const postDate = gift.timestamp ? new Date(gift.timestamp) : new Date();
+                                const timeStr = postDate.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', second:'2-digit'});
                                 const link = `https://t.me/${gift.seller_username}`;
 
                                 post.innerHTML = `
@@ -341,7 +345,7 @@
                                     <a href="${link}" target="_blank" class="seller-btn">👤 Продавец</a>
                                 `;
 
-                                // Вставляем новый пост на самый верх ленты
+                                // Добавляем свежий пост в самое начало ленты
                                 feed.insertBefore(post, feed.firstChild);
                             }
                         });
@@ -351,7 +355,7 @@
                     });
             }
 
-            // Опрашиваем бэкенд каждые 2 секунды
+            // Запускаем опрос сервера каждые 2 секунды
             fetchLiveUpdates();
             setInterval(fetchLiveUpdates, 2000);
         }
