@@ -282,11 +282,8 @@
     </div>
 
     <script>
-        // Скрипт автоматически определяет адрес запущенного сервера бэкенда.
-        // Если ты открыл файл на ПК, он будет слать запросы к 127.0.0.1.
-        // Если открыл на телефоне, замени слово "window.location.hostname" внутри кавычек на IP своего компьютера (например "192.168.1.45")
-        const SERVER_IP = window.location.hostname || "127.0.0.1";
-        const SERVER_URL = `http://${SERVER_IP}:8000/api/gifts/all`;
+        // Четко зашиваем адрес бэкенда, который у тебя успешно работает
+        const SERVER_URL = "http://127.0.0.1:8000/api/gifts/all";
 
         // Переход с заставки в приложение
         function enterApp() {
@@ -311,8 +308,10 @@
                 fetch(SERVER_URL)
                     .then(res => res.json())
                     .then(allGifts => {
-                        // Разворачиваем массив, чтобы добавлять новые элементы в правильном хронологическом порядке
-                        allGifts.reverse().forEach(gift => {
+                        // Создаем копию массива [...allGifts] и разворачиваем ЕЁ, чтобы не ломать оригинал при каждом тике таймера
+                        const orderedGifts = [...allGifts].reverse();
+                        
+                        orderedGifts.forEach(gift => {
                             // Проверяем, отрисовывали ли мы этот пост ранее
                             if (!displayedTimestamps.has(gift.timestamp)) {
                                 displayedTimestamps.add(gift.timestamp);
