@@ -3,95 +3,45 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Live Market Feed</title>
+    <title>Market Feed</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        body {
-            background-color: #000000;
-            color: #ffffff;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            margin: 0;
-            padding: 10px;
-        }
-        #feedContainer {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
-        .post-card {
-            background-color: #1c1c1e;
-            border-radius: 12px;
-            padding: 15px;
-            border: 1px solid #333;
-            animation: fadeIn 0.5s ease;
-        }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        .channel-name { font-weight: bold; color: #88b7ff; margin-bottom: 5px; }
-        .gift-title { font-size: 1.1em; margin-bottom: 5px; }
-        .gift-price { color: #ffcc00; font-weight: bold; margin-bottom: 10px; }
-        .seller-btn {
-            width: 100%;
-            padding: 10px;
-            background: #2481cc;
-            border: none;
-            border-radius: 8px;
-            color: white;
-            font-weight: bold;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-        .seller-btn:active { background: #1a629e; }
+        body { background-color: #000; color: #fff; font-family: sans-serif; margin: 0; padding: 10px; }
+        .post-card { background: #1c1c1e; border-radius: 12px; padding: 15px; margin-bottom: 10px; border: 1px solid #333; }
+        .channel-name { font-weight: bold; color: #88b7ff; }
+        .seller-btn { width: 100%; padding: 10px; background: #2481cc; border: none; border-radius: 8px; color: white; cursor: pointer; margin-top: 10px; }
     </style>
 </head>
 <body>
-
     <div id="feedContainer"></div>
-
     <script>
         const tg = window.Telegram.WebApp;
-        tg.expand(); 
+        tg.expand();
+        
+        // ВАЖНО: Сюда вставь ссылку, которую даст Render/Railway после запуска parser.py
+        const SERVER_URL = 'https://ВАШ_СЕРВЕР.onrender.com/get-gifts'; 
 
-        const displayedGifts = new Set();
-        // Используем локальный адрес. Если сервер на другом ПК, замените на его IP.
-        const SERVER_URL = 'http://127.0.0.1:5000/get-gifts';
-
-        async function fetchLiveUpdates() {
+        async function update() {
             try {
-                // Добавляем кэш-бастер (?t=...), чтобы браузер не показывал старые данные
                 const res = await fetch(`${SERVER_URL}?t=${Date.now()}`);
-                if (!res.ok) throw new Error('Сервер недоступен');
-                
-                const allGifts = await res.json();
+                const data = await res.json();
                 const feed = document.getElementById('feedContainer');
-                
-                allGifts.forEach(gift => {
-                    const giftKey = `${gift.seller_username}_${gift.number}`;
-                    
-                    if (!displayedGifts.has(giftKey)) {
-                        displayedGifts.add(giftKey);
-                        
-                        const post = document.createElement('div');
-                        post.className = 'post-card';
-                        post.innerHTML = `
-                            <div class="channel-name">@${gift.seller_username}</div>
-                            <div class="gift-title">🎁 ${gift.gift_name}</div>
-                            <div class="gift-meta">№ ${gift.number}</div>
-                            <div class="gift-price">⭐ ${gift.price} Stars</div>
-                            <button class="seller-btn" onclick="tg.openTelegramLink('https://t.me/${gift.seller_username}')">
-                                👤 ПЕРЕЙТИ К ПРОДАВЦУ
-                            </button>
-                        `;
-                        feed.prepend(post);
-                    }
+                feed.innerHTML = ''; // Очищаем и рисуем заново
+                data.forEach(gift => {
+                    const post = document.createElement('div');
+                    post.className = 'post-card';
+                    post.innerHTML = `
+                        <div class="channel-name">@${gift.seller_username}</div>
+                        <div>🎁 ${gift.gift_name}</div>
+                        <div class="gift-price">⭐ ${gift.price} Stars</div>
+                        <button class="seller-btn" onclick="tg.openTelegramLink('https://t.me/${gift.seller_username}')">ПЕРЕЙТИ</button>
+                    `;
+                    feed.appendChild(post);
                 });
-            } catch (err) {
-                console.error("Ошибка обновления:", err);
-            }
+            } catch (e) { console.error(e); }
         }
-
-        // Запуск интервала
-        setInterval(fetchLiveUpdates, 10000);
-        fetchLiveUpdates();
+        setInterval(update, 10000);
+        update();
     </script>
 </body>
 </html>
