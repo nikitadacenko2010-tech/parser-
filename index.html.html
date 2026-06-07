@@ -1,46 +1,93 @@
-async function startLiveFeed() {
-    const feed = document.getElementById('feedContainer');
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Market Feed</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        body {
+            background-color: #000000;
+            color: #ffffff;
+            font-family: sans-serif;
+            margin: 0;
+            padding: 10px;
+        }
+        #feedContainer {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .post-card {
+            background-color: #1c1c1e;
+            border-radius: 12px;
+            padding: 15px;
+            border: 1px solid #333;
+            animation: fadeIn 0.5s ease;
+        }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .channel-name { font-weight: bold; color: #88b7ff; margin-bottom: 5px; }
+        .gift-title { font-size: 1.1em; margin-bottom: 5px; }
+        .gift-price { color: #ffcc00; font-weight: bold; margin-bottom: 10px; }
+        .seller-btn {
+            width: 100%;
+            padding: 10px;
+            background: #2481cc;
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
 
-    async function fetchLiveUpdates() {
-        try {
-            const res = await fetch(SERVER_URL);
-            const allGifts = await res.json();
-            
-            // Проходим по массиву всех лотов
-            allGifts.forEach(gift => {
-                const giftKey = `${gift.seller_username}_${gift.number}`;
+    <div id="feedContainer">
+        </div>
+
+    <script>
+        const tg = window.Telegram.WebApp;
+        tg.expand(); // Разворачиваем на весь экран
+
+        const displayedGifts = new Set();
+        const SERVER_URL = 'https://ваш-сервер.com/get-gifts'; // Укажите URL вашего API
+
+        async function fetchLiveUpdates() {
+            try {
+                const res = await fetch(SERVER_URL);
+                const allGifts = await res.json();
                 
-                if (!displayedGifts.has(giftKey)) {
-                    displayedGifts.add(giftKey);
+                const feed = document.getElementById('feedContainer');
+                
+                allGifts.forEach(gift => {
+                    const giftKey = `${gift.seller_username}_${gift.number}`;
                     
-                    const post = document.createElement('div');
-                    post.className = 'post-card';
-                    post.innerHTML = `
-                        <div class="post-header">
-                            <div class="channel-info">
-                                <div class="channel-avatar">💎</div>
-                                <div class="channel-name">@${gift.seller_username}</div>
-                            </div>
-                        </div>
-                        <div class="post-content">
+                    if (!displayedGifts.has(giftKey)) {
+                        displayedGifts.add(giftKey);
+                        
+                        const post = document.createElement('div');
+                        post.className = 'post-card';
+                        post.innerHTML = `
+                            <div class="channel-name">@${gift.seller_username}</div>
                             <div class="gift-title">🎁 ${gift.gift_name}</div>
                             <div class="gift-meta">№ ${gift.number}</div>
                             <div class="gift-price">⭐ ${gift.price} Stars</div>
-                        </div>
-                        <button class="seller-btn" onclick="tg.openTelegramLink('https://t.me/${gift.seller_username}')">
-                            👤 ПЕРЕЙТИ К ПРОДАВЦУ
-                        </button>
-                    `;
-                    // Добавляем новые лоты в начало ленты
-                    feed.prepend(post);
-                }
-            });
-        } catch (err) {
-            console.error("Ошибка сети:", err);
+                            <button class="seller-btn" onclick="tg.openTelegramLink('https://t.me/${gift.seller_username}')">
+                                👤 ПЕРЕЙТИ К ПРОДАВЦУ
+                            </button>
+                        `;
+                        feed.prepend(post);
+                    }
+                });
+            } catch (err) {
+                console.error("Ошибка сети:", err);
+            }
         }
-    }
 
-    // Интервал 3 секунды
-    setInterval(fetchLiveUpdates, 3000);
-    fetchLiveUpdates();
-}
+        // Обновление каждые 10 секунд
+        setInterval(fetchLiveUpdates, 10000);
+        fetchLiveUpdates();
+    </script>
+</body>
+</html>
