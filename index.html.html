@@ -1,92 +1,46 @@
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NFT Market Parser</title>
+async function startLiveFeed() {
+    const feed = document.getElementById('feedContainer');
 
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
-
-    <style>
-        body {
-            background: #0f172a;
-            color: white;
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 15px;
+    async function fetchLiveUpdates() {
+        try {
+            const res = await fetch(SERVER_URL);
+            const allGifts = await res.json();
+            
+            // Проходим по массиву всех лотов
+            allGifts.forEach(gift => {
+                const giftKey = `${gift.seller_username}_${gift.number}`;
+                
+                if (!displayedGifts.has(giftKey)) {
+                    displayedGifts.add(giftKey);
+                    
+                    const post = document.createElement('div');
+                    post.className = 'post-card';
+                    post.innerHTML = `
+                        <div class="post-header">
+                            <div class="channel-info">
+                                <div class="channel-avatar">💎</div>
+                                <div class="channel-name">@${gift.seller_username}</div>
+                            </div>
+                        </div>
+                        <div class="post-content">
+                            <div class="gift-title">🎁 ${gift.gift_name}</div>
+                            <div class="gift-meta">№ ${gift.number}</div>
+                            <div class="gift-price">⭐ ${gift.price} Stars</div>
+                        </div>
+                        <button class="seller-btn" onclick="tg.openTelegramLink('https://t.me/${gift.seller_username}')">
+                            👤 ПЕРЕЙТИ К ПРОДАВЦУ
+                        </button>
+                    `;
+                    // Добавляем новые лоты в начало ленты
+                    feed.prepend(post);
+                }
+            });
+        } catch (err) {
+            console.error("Ошибка сети:", err);
         }
+    }
 
-        h1 {
-            text-align: center;
-        }
-
-        .card {
-            background: #1e293b;
-            border-radius: 15px;
-            padding: 15px;
-            margin-bottom: 15px;
-        }
-
-        .price {
-            color: #22c55e;
-            font-size: 18px;
-        }
-
-        button {
-            width: 100%;
-            background: #3b82f6;
-            color: white;
-            border: none;
-            border-radius: 10px;
-            padding: 12px;
-            cursor: pointer;
-            font-size: 16px;
-        }
-
-        button:hover {
-            background: #2563eb;
-        }
-    </style>
-</head>
-<body>
-
-<h1>NFT Продавцы</h1>
-
-<div id="list"></div>
-
-<script>
-Telegram.WebApp.expand();
-
-fetch("data.json")
-.then(response => response.json())
-.then(data => {
-
-    const list = document.getElementById("list");
-
-    data.forEach(item => {
-
-        const card = document.createElement("div");
-        card.className = "card";
-
-        card.innerHTML = `
-            <h2>${item.nft}</h2>
-            <p class="price">${item.price} TON</p>
-            <p>Продавец: @${item.username}</p>
-
-            <button onclick="window.open('https://t.me/${item.username}')">
-                Написать продавцу
-            </button>
-        `;
-
-        list.appendChild(card);
-    });
-
-})
-.catch(() => {
-    document.getElementById("list").innerHTML =
-        "<h3>Нет данных.</h3>";
-});
-</script>
-
-</body>
-</html>
+    // Интервал 3 секунды
+    setInterval(fetchLiveUpdates, 3000);
+    fetchLiveUpdates();
+}
