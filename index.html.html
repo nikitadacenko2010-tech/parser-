@@ -9,7 +9,7 @@
         body {
             background-color: #000000;
             color: #ffffff;
-            font-family: sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             margin: 0;
             padding: 10px;
         }
@@ -38,26 +38,30 @@
             color: white;
             font-weight: bold;
             cursor: pointer;
+            transition: background 0.2s;
         }
+        .seller-btn:active { background: #1a629e; }
     </style>
 </head>
 <body>
 
-    <div id="feedContainer">
-        </div>
+    <div id="feedContainer"></div>
 
     <script>
         const tg = window.Telegram.WebApp;
-        tg.expand(); // Разворачиваем на весь экран
+        tg.expand(); 
 
         const displayedGifts = new Set();
-        const SERVER_URL = 'https://ваш-сервер.com/get-gifts'; // Укажите URL вашего API
+        // Используем локальный адрес. Если сервер на другом ПК, замените на его IP.
+        const SERVER_URL = 'http://127.0.0.1:5000/get-gifts';
 
         async function fetchLiveUpdates() {
             try {
-                const res = await fetch(SERVER_URL);
-                const allGifts = await res.json();
+                // Добавляем кэш-бастер (?t=...), чтобы браузер не показывал старые данные
+                const res = await fetch(`${SERVER_URL}?t=${Date.now()}`);
+                if (!res.ok) throw new Error('Сервер недоступен');
                 
+                const allGifts = await res.json();
                 const feed = document.getElementById('feedContainer');
                 
                 allGifts.forEach(gift => {
@@ -81,11 +85,11 @@
                     }
                 });
             } catch (err) {
-                console.error("Ошибка сети:", err);
+                console.error("Ошибка обновления:", err);
             }
         }
 
-        // Обновление каждые 10 секунд
+        // Запуск интервала
         setInterval(fetchLiveUpdates, 10000);
         fetchLiveUpdates();
     </script>
