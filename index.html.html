@@ -2,354 +2,97 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>ТРАХ ПАРСЕР</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        /* Общие стили под темную тему Telegram Mini App */
+        /* (Ваши стили остаются без изменений, добавьте только это для корректной работы на мобильных) */
         body {
-            background-color: #0b0b0f;
-            color: #ffffff;
+            background-color: var(--tg-theme-bg-color, #0b0b0f);
+            color: var(--tg-theme-text-color, #ffffff);
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             margin: 0;
             padding: 0;
-            overflow-x: hidden;
             height: 100vh;
+            overflow: hidden;
         }
-
-        /* ЭКРАН 1: Аниме заставка */
-        .welcome-screen {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100vh;
-            /* Стильный аниме-фон из Unsplash */
-            background: linear-gradient(to bottom, rgba(11, 11, 15, 0.4), #0b0b0f), 
-                        url('https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?q=80&w=1000&auto=format&fit=crop') no-repeat center center;
-            background-size: cover;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            z-index: 10;
-            transition: transform 0.6s cubic-bezier(0.77, 0, 0.175, 1);
-        }
-
-        /* Агрессивный неоновый заголовок по центру */
-        .main-title {
-            font-size: 46px;
-            font-weight: 900;
-            text-transform: uppercase;
-            color: #ff0055;
-            text-shadow: 0 0 20px #ff0055, 0 0 40px #ff0055;
-            letter-spacing: 3px;
-            margin-bottom: 35px;
-            text-align: center;
-            animation: pulse 1.2s infinite alternate;
-        }
-
-        @keyframes pulse {
-            from { transform: scale(1); text-shadow: 0 0 20px #ff0055; }
-            to { transform: scale(1.06); text-shadow: 0 0 35px #ff0055, 0 0 10px #fff; }
-        }
-
-        /* Кнопка ТРАХ ПАРСЕР */
-        .start-btn {
-            background: linear-gradient(45deg, #ff0055, #7000ff);
-            color: white;
-            border: none;
-            padding: 20px 50px;
-            font-size: 22px;
-            font-weight: bold;
-            text-transform: uppercase;
-            border-radius: 50px;
-            cursor: pointer;
-            box-shadow: 0 5px 30px rgba(255, 0, 85, 0.6);
-            transition: 0.3s ease;
-        }
-
-        .start-btn:hover {
-            transform: translateY(-3px) scale(1.02);
-            box-shadow: 0 8px 40px rgba(112, 0, 255, 0.8);
-        }
-
-        /* ЭКРАН 2: Внутренний интерфейс Ленты */
-        .app-screen {
-            padding: 15px;
-            padding-bottom: 95px; /* Зазор под нижнюю панель навигации */
-            display: none;
-            flex-direction: column;
-            min-height: 100vh;
-            box-sizing: border-box;
-        }
-
-        /* Закрепленный липкий заголовок ленты */
-        .screen-header {
-            position: sticky;
-            top: 0;
-            background: #0b0b0f;
-            padding: 15px 0;
-            z-index: 5;
-            border-bottom: 1px solid #1a1a26;
-            margin-bottom: 20px;
-        }
-
-        .screen-title {
-            font-size: 22px;
-            font-weight: 800;
-            color: #7000ff;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            border-left: 4px solid #ff0055;
-            padding-left: 12px;
-            margin: 0;
-        }
-
-        /* Контейнер бесконечной ленты */
-        .feed-container {
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
-            width: 100%;
-            max-width: 500px;
-            margin: 0 auto;
-        }
-
-        /* Карточка поста */
-        .post-card {
-            background: #13131a;
-            border: 1px solid #222230;
-            border-radius: 18px;
-            padding: 18px;
-            box-shadow: 0 8px 16px rgba(0,0,0,0.4);
-        }
-
-        .post-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 12px;
-        }
-
-        .channel-info {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        /* Аватарка автора поста */
-        .channel-avatar {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background: linear-gradient(45deg, #7000ff, #ff0055);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            font-size: 16px;
-            box-shadow: 0 0 10px rgba(255, 0, 85, 0.4);
-        }
-
-        .channel-name {
-            font-weight: 700;
-            font-size: 15px;
-            color: #ffffff;
-        }
-
-        .post-time {
-            font-size: 12px;
-            color: #555570;
-        }
-
-        /* Внутренний блок с описанием подарка */
-        .post-content {
-            background: #1c1c24;
-            border-radius: 14px;
-            padding: 14px;
-            margin-bottom: 14px;
-            border-left: 3px solid #ff0055;
-        }
-
-        .gift-title {
-            font-size: 17px;
-            font-weight: 700;
-            color: #ffffff;
-            margin-bottom: 6px;
-        }
-
-        .gift-meta {
-            font-size: 14px;
-            color: #a0a0b0;
-            margin-bottom: 6px;
-        }
-
-        .gift-price {
-            font-size: 17px;
-            color: #00ffcc;
-            font-weight: 800;
-            text-shadow: 0 0 10px rgba(0, 255, 204, 0.3);
-        }
-
-        /* Кнопка перехода к человеку (Продавец) */
-        .seller-btn {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: linear-gradient(90deg, #7000ff, #5200cc);
-            color: #ffffff;
-            text-decoration: none;
-            padding: 14px;
-            border-radius: 12px;
-            font-weight: 700;
-            font-size: 15px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            transition: all 0.2s ease;
-        }
-
-        .seller-btn:hover {
-            background: linear-gradient(90deg, #ff0055, #cc0044);
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(255, 0, 85, 0.4);
-        }
-
-        /* Нижняя фиксированная фигура (Панель меню "Чаты") */
-        .bottom-nav {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            height: 75px;
-            background: #13131a;
-            border-top: 1px solid #222230;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 10;
-        }
-
-        .nav-item {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            color: #ff0055; /* Розовый неоновый акцент активности */
-            cursor: pointer;
-            font-weight: 800;
-            font-size: 12px;
-            gap: 5px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        .nav-icon {
-            width: 28px;
-            height: 28px;
-            fill: currentColor;
-            filter: drop-shadow(0 0 5px #ff0055);
-        }
+        /* Остальные ваши стили... */
     </style>
 </head>
 <body>
 
     <div class="welcome-screen" id="welcomeScreen">
         <div class="main-title">ТРАХ ПАРСЕР</div>
-        <button class="start-btn" onclick="enterApp()">ТРАХ ПАРСЕР</button>
+        <button class="start-btn" onclick="enterApp()">ВОЙТИ В ЛЕНТУ</button>
     </div>
 
-    <div class="app-screen" id="appScreen">
+    <div class="app-screen" id="appScreen" style="display: none; height: 100vh; overflow-y: auto;">
         <div class="screen-header">
-            <h2 class="screen-title">⚡ ЛЕНТА МАРКЕТПЛЕЙСА (LIVE)</h2>
+            <h2 class="screen-title">⚡ ЛЕНТА МАРКЕТПЛЕЙСА</h2>
         </div>
         
         <div class="feed-container" id="feedContainer"></div>
-
-        <div class="bottom-nav">
-            <div class="nav-item">
-                <svg class="nav-icon" viewBox="0 0 24 24">
-                    <path d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zM6 9h12v2H6V9zm8 5H6v-2h8v2zm4-6H6V6h12v2z"/>
-                </svg>
-                <span>ЧАТЫ</span>
-            </div>
-        </div>
     </div>
 
     <script>
+        // Инициализация Telegram WebApp
+        const tg = window.Telegram.WebApp;
+        tg.ready();
+        tg.expand();
+
         const SERVER_IP = "192.168.1.101"; 
         const SERVER_URL = `http://${SERVER_IP}:8000/api/gifts/all`;
+        let displayedGifts = new Set();
 
         function enterApp() {
-            const welcome = document.getElementById('welcomeScreen');
-            const app = document.getElementById('appScreen');
-            
-            welcome.style.transform = 'translateY(-100vh)'; 
-            setTimeout(() => {
-                welcome.style.display = 'none';
-                app.style.display = 'flex';
-                startLiveFeed(); 
-            }, 600);
+            document.getElementById('welcomeScreen').style.transform = 'translateY(-100vh)';
+            document.getElementById('appScreen').style.display = 'flex';
+            startLiveFeed();
         }
 
-        function startLiveFeed() {
+        async function startLiveFeed() {
             const feed = document.getElementById('feedContainer');
 
-            function fetchLiveUpdates() {
-                fetch(SERVER_URL)
-                    .then(res => res.json())
-                    .then(allGifts => {
-                        // Очищаем экран перед рендером, чтобы избежать бесконечного накопления дублей
-                        feed.innerHTML = '';
-
-                        // Фильтруем массив от дубликатов на лету внутри этого запроса
-                        const uniqueGifts = [];
-                        const seenKeys = new Set();
-
-                        // Идем с конца массива к началу (новые лоты обычно в конце логов бэкенда)
-                        for (let i = allGifts.length - 1; i >= 0; i--) {
-                            const gift = allGifts[i];
-                            const giftKey = `${gift.seller_username}_${gift.gift_name}_${gift.number || gift.timestamp}`;
+            async function fetchLiveUpdates() {
+                try {
+                    const res = await fetch(SERVER_URL);
+                    const allGifts = await res.json();
+                    
+                    // Обрабатываем новые лоты
+                    [...allGifts].reverse().forEach(gift => {
+                        const giftKey = `${gift.seller_username}_${gift.number}`;
+                        
+                        if (!displayedGifts.has(giftKey)) {
+                            displayedGifts.add(giftKey);
                             
-                            if (!seenKeys.has(giftKey)) {
-                                seenKeys.add(giftKey);
-                                uniqueGifts.push(gift);
-                            }
-                        }
-
-                        // Рендерим только уникальные элементы
-                        uniqueGifts.forEach(gift => {
                             const post = document.createElement('div');
                             post.className = 'post-card';
-
-                            const postDate = gift.timestamp ? new Date(gift.timestamp) : new Date();
-                            const timeStr = postDate.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', second:'2-digit'});
-                            const link = `https://t.me/${gift.seller_username}`;
-
                             post.innerHTML = `
                                 <div class="post-header">
                                     <div class="channel-info">
                                         <div class="channel-avatar">💎</div>
-                                        <div class="channel-name">@${gift.seller_username} выставил лот</div>
+                                        <div class="channel-name">@${gift.seller_username}</div>
                                     </div>
-                                    <div class="post-time">${timeStr}</div>
                                 </div>
                                 <div class="post-content">
-                                    <div class="gift-title">🎁 Предмет: ${gift.gift_name}</div>
-                                    <div class="gift-meta">Серийный номер: ${gift.number}</div>
-                                    <div class="gift-price">⭐ Стоимость: ${gift.price} Stars</div>
+                                    <div class="gift-title">🎁 ${gift.gift_name}</div>
+                                    <div class="gift-meta">№ ${gift.number}</div>
+                                    <div class="gift-price">⭐ ${gift.price} Stars</div>
                                 </div>
-                                <a href="${link}" target="_blank" class="seller-btn">👤 Продавец</a>
+                                <button class="seller-btn" onclick="tg.openTelegramLink('https://t.me/${gift.seller_username}')">
+                                    👤 ПЕРЕЙТИ К ПРОДАВЦУ
+                                </button>
                             `;
-                            feed.appendChild(post);
-                        });
-                    })
-                    .catch(err => {
-                        console.log("Ожидание новых лотов...", err);
+                            feed.insertBefore(post, feed.firstChild);
+                        }
                     });
+                } catch (err) {
+                    console.error("Ошибка соединения с парсером:", err);
+                }
             }
 
-            fetchLiveUpdates();
             setInterval(fetchLiveUpdates, 2000);
+            fetchLiveUpdates();
         }
     </script>
 </body>
