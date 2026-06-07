@@ -1,47 +1,29 @@
 <!DOCTYPE html>
-<html lang="ru">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Market Feed</title>
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <style>
-        body { background-color: #000; color: #fff; font-family: sans-serif; margin: 0; padding: 10px; }
-        .post-card { background: #1c1c1e; border-radius: 12px; padding: 15px; margin-bottom: 10px; border: 1px solid #333; }
-        .channel-name { font-weight: bold; color: #88b7ff; }
-        .seller-btn { width: 100%; padding: 10px; background: #2481cc; border: none; border-radius: 8px; color: white; cursor: pointer; margin-top: 10px; }
-    </style>
-</head>
+<html>
 <body>
-    <div id="feedContainer"></div>
-    <script>
-        const tg = window.Telegram.WebApp;
-        tg.expand();
-        
-        // ВАЖНО: Сюда вставь ссылку, которую даст Render/Railway после запуска parser.py
-        const SERVER_URL = 'https://ВАШ_СЕРВЕР.onrender.com/get-gifts'; 
+    <div id="list"></div>
 
-        async function update() {
-            try {
-                const res = await fetch(`${SERVER_URL}?t=${Date.now()}`);
-                const data = await res.json();
-                const feed = document.getElementById('feedContainer');
-                feed.innerHTML = ''; // Очищаем и рисуем заново
-                data.forEach(gift => {
-                    const post = document.createElement('div');
-                    post.className = 'post-card';
-                    post.innerHTML = `
-                        <div class="channel-name">@${gift.seller_username}</div>
-                        <div>🎁 ${gift.gift_name}</div>
-                        <div class="gift-price">⭐ ${gift.price} Stars</div>
-                        <button class="seller-btn" onclick="tg.openTelegramLink('https://t.me/${gift.seller_username}')">ПЕРЕЙТИ</button>
-                    `;
-                    feed.appendChild(post);
-                });
-            } catch (e) { console.error(e); }
+    <script>
+        const SERVER_URL = 'https://ВАШ_САЙТ.onrender.com/get-users';
+
+        async function updateList() {
+            const res = await fetch(SERVER_URL);
+            const users = await res.json();
+            const listDiv = document.getElementById('list');
+            listDiv.innerHTML = '';
+            
+            users.forEach(user => {
+                const btn = document.createElement('button');
+                btn.style.display = 'block';
+                btn.style.width = '100%';
+                btn.style.marginBottom = '5px';
+                btn.innerText = '@' + user;
+                btn.onclick = () => window.Telegram.WebApp.openLink('https://t.me/' + user);
+                listDiv.appendChild(btn);
+            });
         }
-        setInterval(update, 10000);
-        update();
+        setInterval(updateList, 5000);
+        updateList();
     </script>
 </body>
 </html>
